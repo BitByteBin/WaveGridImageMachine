@@ -1,0 +1,461 @@
+﻿@model NFT
+
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center">
+    <h1 class="display-4">BinDrops</h1>
+</div>
+
+@section Scripts {
+    <script type="text/javascript">
+        function xmur3(str) {
+            for (var i = 0, h = 1779033703 ^ str.length; i < str.length; i++)
+                h = Math.imul(h ^ str.charCodeAt(i), 3432918353),
+                    h = h << 13 | h >>> 19;
+            return function () {
+                h = Math.imul(h ^ h >>> 16, 2246822507);
+                h = Math.imul(h ^ h >>> 13, 3266489909);
+                return (h ^= h >>> 16) >>> 0;
+            }
+        }
+
+        function xoshiro128ss(a, b, c, d) {
+            return function () {
+                var t = b << 9, r = a * 5; r = (r << 7 | r >>> 25) * 9;
+                c ^= a; d ^= b;
+                b ^= c; a ^= d; c ^= t;
+                d = d << 11 | d >>> 21;
+                return (r >>> 0) / 4294967296;
+            }
+        }
+    </script>
+    <script type="text/javascript" defer>
+        // get inputs from bin
+        let binData = "@Model.Bin";
+        let binRarity = "@Model.LongRarity";
+        let binNameNumber = @Model.Name.Split(" ").Last();
+        let currentBin = parseInt(binNameNumber, 2);
+        let nextBin = currentBin + 1;
+        let nextBinNumber = int2bin(nextBin);
+
+        // Create xmur3 state:
+        var seed = xmur3(binData);
+        // Output four 32-bit hashes to provide the seed for xoshiro128ss.
+        var rand = xoshiro128ss(seed(), seed(), seed(), seed());
+
+        // bin set inputs
+        let Mode; //percentage
+        let Shape;
+        // 1: Toruses ; 2: Cubes; 3: Spheres; 4: Wireframe;
+        let ModePercentage = rand() < 0.5 ? rand() * 100 : rand() * (100 - (rand() * (binRarity.length*2)));
+        if (ModePercentage < 10) { // 10%
+            Mode = 1;
+            Shape = "Torus";
+            rarity = 10/100;
+        } else if (ModePercentage < 10 + 20) { // 20%
+            Mode = 2;
+            Shape = "Cube";
+            rarity = 20/100;
+        } else if (ModePercentage < 10 + 20 + 30) { // 30%
+            Mode = 3;
+            Shape = "Sphere";
+            rarity = 30/100;
+        } else { // 40%
+            Mode = 4;
+            Shape = "Wireframe";
+            rarity = 40/100;
+        }
+
+        let FLUIDITY = 0.95 // 0 < x < 1 TIP: 1 means no loss in time
+        let SPEED = genRand(.01, .1, 2); //0.1 // 0 < x < 1 WARNING! High values make the simulation unstable
+        const INTERACTION_STRENGTH = -50; // How much force is given to a clicked point
+        const MIN_AMMOUNT = 50 // Ammount of points on the shorter side of the grid
+
+        let BaseColor = "#" + Math.floor(rand() * 16777215).toString(16);
+        let OtherColor = "#" + Math.floor(rand() * 16777215).toString(16);
+
+        let shapeSize = Math.floor(rand() * (30 - 5) + 5);
+        let shapeSize2 = Math.floor(rand() * (5 - 0));
+
+        let colorMultiplier = rand() < 0.5 ? rand() * 10000 : rand() * (binRarity.length * 1000);
+
+
+        // application variables
+        let unmoved = 0;
+        let overmoved = 0;
+        //const ASPECT_RATIO = window.innerWidtModel / window.innerHeight *.8
+        const size = 840;
+        const height = size, width = size;
+        const ASPECT_RATIO = height / width;
+
+        const GRID_HEIGHT = (ASPECT_RATIO > 1) ? MIN_AMMOUNT : Math.floor(MIN_AMMOUNT / ASPECT_RATIO)
+        const GRID_WIDTH = (ASPECT_RATIO > 1) ? Math.floor(MIN_AMMOUNT * ASPECT_RATIO) : MIN_AMMOUNT
+
+        const POINT_MARGIN = Math.min(width, height) / Math.min(GRID_HEIGHT, GRID_WIDTH);
+
+        const points = [];
+        let colorsArr = [];
+        let colorsArrSize = 1000;
+
+        let capture = true;
+        const capturer = CCapture({ format: 'png', name: `${currentBin}` });
+        const NUM_FRAMES = 110; //estimate, will go over if still movement
+
+        function genRand(min, max, decimalPlaces) {
+            return (rand() * (max - min) + min).toFixed(decimalPlaces) * 1;
+        }
+
+        let img;
+        function preload() {
+            //img = loadImage("./ArtCollections/12.png");
+        }
+
+        function setup() {
+            createCanvas(width * 1.4, height * 1.4, WEBGL);
+
+            for (let x = 0; x < GRID_WIDTH; x++) {
+                points.push([]);
+               for (let y = 0; y < GRID_HEIGHT; y++) {
+                    points[x].push(new Point());
+                }
+            }
+        }
+
+        function draw() {
+            if (capture && frameCount == 1) capturer.start();
+
+            //update
+            calculate();
+            interact();
+            step();
+
+            //draw
+            background('#000000');
+
+            rotateX(PI * -0.20);
+            translate(0, -height / 10);
+            translate(-width / 2 + POINT_MARGIN / 2, -height / 2 + POINT_MARGIN / 2);
+
+            camera(0, 0, 0, 0, 0, 20 + sin(frameCount * 1000) * 10, 0, 1, 0);
+
+            switch (Mode) { // 1: Toruses ; 2: Cubes; 3: Spheres; 4: Wireframe;
+                case 1: drawToruses();
+                    break;
+                case 2: drawCubes();
+                    break;
+                case 3: drawSpheres();
+                    break;
+                case 4: drawWireframe();
+                    break;
+            }
+
+            if (capture) {
+                capturer.capture(canvas); // if capture is 'true', save the frame
+                const allColorsEqual = colorsArr.every(val => val === colorsArr[0]);
+                if ((allColorsEqual && frameCount > 100)
+                    || (frameCount > 100 && overmoved > 100)) { //stop and save after NUM_FRAMES
+                    console.log(colorsArr);
+
+                    capturer.stop();
+                    capturer.save();
+                    frameCount = 0;
+                    noLoop();
+
+                    let data = createJson();
+                    let content = JSON.stringify(data);
+                    var fileName = currentBin + '.json';
+
+                    downloadToFile(content, fileName, 'text/json');
+                    window.location.href = `?Id=${nextBinNumber}`;
+                }
+            }
+        }
+
+        const downloadToFile = (content, filename, contentType) => {
+            const a = document.createElement('a');
+            const file = new Blob([content], { type: contentType });
+
+            a.href = URL.createObjectURL(file);
+            a.download = filename;
+            a.click();
+
+            URL.revokeObjectURL(a.href);
+        };
+
+        function interact() {
+            if (frameCount < 100) {
+                let on = false;
+
+                let onRand = rand() * 100;
+                if (onRand < 20) { // 20%
+                    on = true;
+                } else { // 80%
+                    on = false;
+                }
+
+                if (on) {
+                    let randX = rand() * (innerWidth - MIN_AMMOUNT) + MIN_AMMOUNT;
+                    let randY = rand() * (innerHeight - MIN_AMMOUNT) + MIN_AMMOUNT;
+                    let x = Math.floor(randX / POINT_MARGIN)
+                    let y = Math.floor(randY / POINT_MARGIN)
+                    if (x >= 0 && y >= 0 && x < GRID_WIDTH && y < GRID_HEIGHT) {
+
+                        // probability
+                        let interactionStrength;
+                        let interactionRand = rand() * 100;
+                        if (interactionRand < 1) { // 1%
+                            interactionStrength = -200;
+                        } else if (interactionRand < 1 + 4) { // 5%
+                            interactionStrength = -50;
+                        } else if (interactionRand < 1 + 4 + 15) { // 15%
+                            interactionStrength = -40;
+                        } else if (interactionRand < 1 + 4 + 15 + 20) { // 20 %
+                            interactionStrength = -30;
+                        } else if (interactionRand < 1 + 4 + 15 + 20 + 25) { // 25%
+                            interactionStrength = -20;
+                        } else { // 35%
+                            interactionStrength = -10;
+                        }
+
+                        points[x][y].nextVal = interactionStrength;
+                        points[x][y].force = 0;
+                    }
+                }
+            }
+        }
+
+        function calculate() {
+            let movement = 0;
+            let outOfBounds = 0;
+            points.forEach(function (col, x) {
+                col.forEach(function (point, y) {
+                    let left = points[x - 1] ? points[x - 1][y].val : null
+                    let right = points[x + 1] ? points[x + 1][y].val : null
+                    let up = points[x][y - 1] ? points[x][y - 1].val : null
+                    let down = points[x][y + 1] ? points[x][y + 1].val : null
+
+                    let tl = !!(left && up) ? points[x - 1][y - 1].val : null
+                    let tr = !!(right && up) ? points[x + 1][y - 1].val : null
+                    let bl = !!(left && down) ? points[x - 1][y + 1].val : null
+                    let br = !!(right && down) ? points[x + 1][y + 1].val : null
+
+                    let adj = left + right + up + down + ((tl + tr + bl + br) * .29)
+                    if (adj < -0.001 || adj > 0.001) {
+                        movement++;
+                        if (adj < -300 || adj > 300) {
+                            outOfBounds++;
+                        }
+                    }
+                    point.update(adj * .776)
+                });
+            });
+            if (movement > 14) {
+                unmoved = 0;
+            } else {
+                unmoved++;
+            }
+            if (outOfBounds > 100) {
+                overmoved++;
+            } else {
+                overmoved = 0;
+            }
+        }
+
+        function step() {
+            points.forEach(function (col) {
+                col.forEach(function (point) {
+                    point.step()
+                })
+            })
+        }
+
+        function drawCubes() {
+            push();
+            points.forEach(function (col, x) {
+                col.forEach(function (point, y) {
+                    translate(0, 0, point.val);
+                    let color = incrementColor(OtherColor, points[x][y].val * colorMultiplier)
+                    fill(color);
+                    colorsArr.unshift(color);
+                    if (colorsArr.length > colorsArrSize) {
+                        colorsArr.pop();
+                    }
+                    box(shapeSize)
+                    translate(0, 0, -point.val);
+                    translate(0, POINT_MARGIN);
+                });
+                translate(POINT_MARGIN, 0);
+                translate(0, -POINT_MARGIN * col.length);
+            });
+            pop();
+        }
+
+        function drawSpheres() {
+            push();
+            points.forEach(function (col, x) {
+                col.forEach(function (point, y) {
+                    translate(0, 0, point.val);
+                    let color = incrementColor(OtherColor, points[x][y].val * colorMultiplier)
+                    fill(color);
+                    colorsArr.unshift(color);
+                    if (colorsArr.length > colorsArrSize) {
+                        colorsArr.pop();
+                    }
+                    sphere(shapeSize);
+                    translate(0, 0, -point.val);
+                    translate(0, POINT_MARGIN);
+                });
+                translate(POINT_MARGIN, 0);
+                translate(0, -POINT_MARGIN * col.length);
+            });
+            pop();
+        }
+
+        function drawToruses() {
+            push();
+            points.forEach(function (col, x) {
+                col.forEach(function (point, y) {
+                    translate(0, 0, point.val);
+                    let color = incrementColor(OtherColor, points[x][y].val * colorMultiplier)
+                    fill(color);
+                    colorsArr.unshift(color);
+                    if (colorsArr.length > colorsArrSize) {
+                        colorsArr.pop();
+                    }
+                    torus(shapeSize, shapeSize2);
+                    translate(0, 0, -point.val);
+                    translate(0, POINT_MARGIN);
+                });
+                translate(POINT_MARGIN, 0);
+                translate(0, -POINT_MARGIN * col.length);
+            });
+            pop();
+        }
+
+        function drawWireframe() {
+            fill(BaseColor);
+            for (let x = 0; x < GRID_WIDTH - 1; x++) {
+                beginShape();
+                for (let y = 0; y < GRID_HEIGHT - 1; y++) {
+                    let scl = 5;
+                    let color = incrementColor(OtherColor, points[x][y].val * colorMultiplier);
+                    colorsArr.unshift(color);
+                    if (colorsArr.length > colorsArrSize) {
+                        colorsArr.pop();
+                    }
+                    fill(color);
+                    vertex(x * POINT_MARGIN, y * POINT_MARGIN, points[x][y].val * scl);
+                    vertex((x + 1) * POINT_MARGIN, y * POINT_MARGIN, points[x + 1][y].val * scl);
+                    vertex(x * POINT_MARGIN, (y + 1) * POINT_MARGIN, points[x][y + 1].val * scl);
+                    vertex(x * POINT_MARGIN, y * POINT_MARGIN, points[x][y].val * scl);
+                    fill(OtherColor);
+                }
+                endShape();
+            }
+        }
+
+        var incrementColor = function (color, step) {
+            var colorToInt = parseInt(color.substr(1), 16),
+                nstep = parseInt(step);
+            if (!isNaN(colorToInt) && !isNaN(nstep)) {
+                colorToInt += nstep;
+                var ncolor = colorToInt.toString(16);
+                try {
+                    ncolor = '#' + (new Array(7 - ncolor.length).join(0)) + ncolor;
+                } catch (e) {
+                    console.log(e);
+                    ncolor = '#FFFFFF';
+                }
+                if (/^#[0-9a-f]{6}$/i.test(ncolor)) {
+                    return ncolor;
+                }
+            }
+            return color;
+        };
+
+        class Point {
+            constructor() {
+                this.val = 0
+                this.nextVal = 0
+                this.force = 0
+            }
+            update(adj) {
+                adj = adj ? adj : 0
+                this.force -= this.val
+                this.force += ((adj / 2) - this.val)
+                this.nextVal += this.force * SPEED * (frameCount / 100) * 2;
+                this.force *= FLUIDITY
+            }
+            step() {
+                this.val = this.nextVal
+            }
+        }
+
+        if (Mode != 1) {
+            shapeSize2 = null;
+        }
+
+        function createJson() {
+            return {
+                "name": `BinDrop ${binNameNumber}`,
+                "symbol": `BinDrop ${binNameNumber}`,
+                "description": "BinDrops, the first algorithmic art collection produced using Bins(@@BitByteBin) as input.",
+                "seller_fee_basis_points": 500,
+                "image": "IMAGEURL",
+                "animation_url": "ANIMATIONURL",
+                "attributes": [
+                    {
+                        "trait_type": "BinId",
+                        "value": `${binNameNumber}`
+                    },
+                    {
+                        "trait_type": "Bin",
+                        "value": `${binData}`
+                    },
+                    {
+                        "trait_type": "Shape",
+                        "value": `${Shape}`
+                    },
+                    {
+                        "trait_type": "ShapeSize",
+                        "value": `${shapeSize}`
+                    },
+                    {
+                        "trait_type": "ShapeSize2",
+                        "value": `${shapeSize2}`
+                    },
+                    {
+                        "trait_type": "ColorMultiplier",
+                        "value": `${colorMultiplier}`
+                    }
+                ],
+                "collection": {
+                    "name": `BinDrops`,
+                    "family": "BitByteBin"
+                },
+                "properties": {
+                    "files": [
+                        {
+                            "uri": "IMAGEURL",
+                            "type": "image/png"
+                        },
+                        {
+                            "uri": "ANIMATIONURL",
+                            "type": "video/mp4"
+                        },
+                    ],
+                    "category": "video",
+                    "creators": [
+                        {
+                            "address": "6V9EwaNwiy1UTFBCJqTAaDg82XivtHHiiVkJCXda7yCP",
+                            "share": 100
+                        }
+                    ]
+                }
+            }
+
+        }
+    </script>
+}
