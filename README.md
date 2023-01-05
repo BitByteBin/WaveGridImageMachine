@@ -11,7 +11,7 @@
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
-  <a href="https://github.com/0xStabby/WaveGridImageMachine">
+  <a href="https://github.com/BitByteBin/WaveGridImageMachine">
     <img src="images/BitDrop.gif" alt="Logo" width="80" height="80">
   </a>
 
@@ -22,14 +22,14 @@
     <br />
     Useful for making generative algo art.
     <br />
-    <a href="https://github.com/0xStabby/WaveGridImageMachine"><strong>Explore the docs »</strong></a>
+    <a href="https://github.com/BitByteBin/WaveGridImageMachine"><strong>Explore the docs »</strong></a>
     <br />
     <br />
-    <a href="https://github.com/0xStabby/WaveGridImageMachine">View Demo</a>
+    <a href="https://github.com/BitByteBin/WaveGridImageMachine">View Demo</a>
     ·
-    <a href="https://github.com/0xStabby/WaveGridImageMachine/issues">Report Bug</a>
+    <a href="https://github.com/BitByteBin/WaveGridImageMachine/issues">Report Bug</a>
     ·
-    <a href="https://github.com/0xStabby/WaveGridImageMachine/issues">Request Feature</a>
+    <a href="https://github.com/BitByteBin/WaveGridImageMachine/issues">Request Feature</a>
   </p>
 </div>
 
@@ -65,7 +65,7 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-[![BitDrop][BitDrop-example]](https://github.com/0xStabby/WaveGridImageMachine)
+[![BitDrop][BitDrop-example]](https://github.com/BitByteBin/WaveGridImageMachine)
 <br/>
 _example BitDrop generated from the WaveGridImageMachine_
 <br/>
@@ -117,7 +117,7 @@ _for installation instructions see [DotNet installation](https://learn.microsoft
 
 1. Clone the repo
    ```sh
-   git clone https://github.com/0xStabby/WaveGridImageMachine.git
+   git clone https://github.com/BitByteBin/WaveGridImageMachine.git
    ```
 2. Build and Run
    ```sh
@@ -132,7 +132,7 @@ _for installation instructions see [DotNet installation](https://learn.microsoft
 ## Usage
 
 WaveGridImageMachine in action:
-[![WaveGridImageMachine][WaveGridImageMachine-screenshot]](https://github.com/0xStabby/WaveGridImageMachine)
+[![WaveGridImageMachine][WaveGridImageMachine-screenshot]](https://github.com/BitByteBin/WaveGridImageMachine)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -147,7 +147,7 @@ WaveGridImageMachine in action:
 - [x] Do step number 2 for each seed
 - [ ] Generalize to make switching out algorithms as simple as adding a file and changing a variable
 
-See the [open issues](https://github.com/0xStabby/WaveGridImageMachine/issues) for a full list of proposed features (and known issues).
+See the [open issues](https://github.com/BitByteBin/WaveGridImageMachine/issues) for a full list of proposed features (and known issues).
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -185,7 +185,7 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 
 Twitter: [@0xStabby](https://twitter.com/0xStabby)
 
-Project Link: [https://github.com/0xStabby/WaveGridImageMachine](https://github.com/0xStabby/WaveGridImageMachine)
+Project Link: [https://github.com/BitByteBin/WaveGridImageMachine](https://github.com/BitByteBin/WaveGridImageMachine)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -193,16 +193,16 @@ Project Link: [https://github.com/0xStabby/WaveGridImageMachine](https://github.
 
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-[contributors-shield]: https://img.shields.io/github/contributors/0xStabby/WaveGridImageMachine.svg?style=for-the-badge
-[contributors-url]: https://github.com/0xStabby/WaveGridImageMachine/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/0xStabby/WaveGridImageMachine.svg?style=for-the-badge
-[forks-url]: https://github.com/0xStabby/WaveGridImageMachine/network/members
-[stars-shield]: https://img.shields.io/github/stars/0xStabby/WaveGridImageMachine.svg?style=for-the-badge
-[stars-url]: https://github.com/0xStabby/WaveGridImageMachine/stargazers
-[issues-shield]: https://img.shields.io/github/issues/0xStabby/WaveGridImageMachine.svg?style=for-the-badge
-[issues-url]: https://github.com/0xStabby/WaveGridImageMachine/issues
-[license-shield]: https://img.shields.io/github/license/0xStabby/WaveGridImageMachine.svg?style=for-the-badge
-[license-url]: https://github.com/0xStabby/WaveGridImageMachine/blob/master/LICENSE.txt
+[contributors-shield]: https://img.shields.io/github/contributors/BitByteBin/WaveGridImageMachine.svg?style=for-the-badge
+[contributors-url]: https://github.com/BitByteBin/WaveGridImageMachine/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/BitByteBin/WaveGridImageMachine.svg?style=for-the-badge
+[forks-url]: https://github.com/BitByteBin/WaveGridImageMachine/network/members
+[stars-shield]: https://img.shields.io/github/stars/BitByteBin/WaveGridImageMachine.svg?style=for-the-badge
+[stars-url]: https://github.com/BitByteBin/WaveGridImageMachine/stargazers
+[issues-shield]: https://img.shields.io/github/issues/BitByteBin/WaveGridImageMachine.svg?style=for-the-badge
+[issues-url]: https://github.com/BitByteBin/WaveGridImageMachine/issues
+[license-shield]: https://img.shields.io/github/license/BitByteBin/WaveGridImageMachine.svg?style=for-the-badge
+[license-url]: https://github.com/BitByteBin/WaveGridImageMachine/blob/master/LICENSE.txt
 [BitDrop-example]: images/BitDrop2.gif
 [WaveGridImageMachine-screenshot]: images/WaveGridImageMachine.png
 [DotNet.Com]: https://img.shields.io/badge/DotNet-5.0-brightgreen?style=for-the-badge
