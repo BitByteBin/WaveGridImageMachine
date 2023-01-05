@@ -1,6 +1,0 @@
--get inputs from bins (8)
--fillout proper json for each NFT (2)
--render all of them(possibly a couple at a time) (64/*)
--convert all to mp4 (4)
--upload nfts to airweave (4)
--for each nft check mainnet and send to the appropriate owner (8)
